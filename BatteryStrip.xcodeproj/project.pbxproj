@@ -1,0 +1,407 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		7D07822DBCDC6E0DF3B518E0 /* BatteryStripHelper in Embed Helper */ = {isa = PBXBuildFile; fileRef = 41DA0177F23EDAE08C231338 /* BatteryStripHelper */; };
+		EDA4F810B07EAE562C2DCFA8 /* com.batterystrip.BatteryStrip.Helper3.plist in Embed Launch Daemon */ = {isa = PBXBuildFile; fileRef = 17228B167DBDADECFE520421 /* com.batterystrip.BatteryStrip.Helper3.plist */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		7A9E62C5D058EF7042AEB037 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A6CEF9DB37707B6DC410E050 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = EFE51031B8A4BCD8F47FB2FC;
+			remoteInfo = BatteryStripHelper;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		8B0C0DE58101D1C40CF9CF9C /* Embed Helper */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 6;
+			files = (
+				7D07822DBCDC6E0DF3B518E0 /* BatteryStripHelper in Embed Helper */,
+			);
+			name = "Embed Helper";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		3C136339E2798B77525A34A0 /* Embed Launch Daemon */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = Contents/Library/LaunchDaemons;
+			dstSubfolderSpec = 1;
+			files = (
+				EDA4F810B07EAE562C2DCFA8 /* com.batterystrip.BatteryStrip.Helper3.plist in Embed Launch Daemon */,
+			);
+			name = "Embed Launch Daemon";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		93D94E0F3F74B59EB1AAD8E7 /* Battery Strip.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Battery Strip.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		41DA0177F23EDAE08C231338 /* BatteryStripHelper */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = BatteryStripHelper; sourceTree = BUILT_PRODUCTS_DIR; };
+		17228B167DBDADECFE520421 /* com.batterystrip.BatteryStrip.Helper3.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = com.batterystrip.BatteryStrip.Helper3.plist; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		4A988D12213EF01787A30D8E /* BatteryStrip */ = {isa = PBXFileSystemSynchronizedRootGroup; path = BatteryStrip; sourceTree = "<group>"; };
+		46AB15AEA602251C8C85CD19 /* BatteryStripHelper */ = {isa = PBXFileSystemSynchronizedRootGroup; path = BatteryStripHelper; sourceTree = "<group>"; };
+		78FA2746EABFD0C4EBC9F73A /* Shared */ = {isa = PBXFileSystemSynchronizedRootGroup; path = Shared; sourceTree = "<group>"; };
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		932922669C75D414E2C92D7F /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		3D1C20A5B78BD6E6F3CC8F5E /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		12F8ABA93BACEE4FBD85DD26 = {
+			isa = PBXGroup;
+			children = (
+				4A988D12213EF01787A30D8E /* BatteryStrip */,
+				46AB15AEA602251C8C85CD19 /* BatteryStripHelper */,
+				78FA2746EABFD0C4EBC9F73A /* Shared */,
+				5C58E8E8996D8FEFDFC98A09 /* LaunchDaemons */,
+				F2012560881F9C6B939452E3 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		F2012560881F9C6B939452E3 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				93D94E0F3F74B59EB1AAD8E7 /* Battery Strip.app */,
+				41DA0177F23EDAE08C231338 /* BatteryStripHelper */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		5C58E8E8996D8FEFDFC98A09 /* LaunchDaemons */ = {
+			isa = PBXGroup;
+			children = (
+				17228B167DBDADECFE520421 /* com.batterystrip.BatteryStrip.Helper3.plist */,
+			);
+			path = LaunchDaemons;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		2FB3DC89902B49C7BB9E9C38 /* BatteryStrip */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 76D3BFC0DB4EAD3793F39178 /* Build configuration list for PBXNativeTarget "BatteryStrip" */;
+			buildPhases = (
+				C1925D4412A65F20FF00EA5A /* Sources */,
+				932922669C75D414E2C92D7F /* Frameworks */,
+				70523BF0B85C4716C7E56E3F /* Resources */,
+				8B0C0DE58101D1C40CF9CF9C /* Embed Helper */,
+				3C136339E2798B77525A34A0 /* Embed Launch Daemon */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				7282CA8AB3677584E5ADD550 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				4A988D12213EF01787A30D8E /* BatteryStrip */,
+				78FA2746EABFD0C4EBC9F73A /* Shared */,
+			);
+			name = BatteryStrip;
+			packageProductDependencies = (
+			);
+			productName = BatteryStrip;
+			productReference = 93D94E0F3F74B59EB1AAD8E7 /* Battery Strip.app */;
+			productType = "com.apple.product-type.application";
+		};
+		EFE51031B8A4BCD8F47FB2FC /* BatteryStripHelper */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = FEA520E43D628B59B968CD9C /* Build configuration list for PBXNativeTarget "BatteryStripHelper" */;
+			buildPhases = (
+				B88728326AFF16EC3F288C40 /* Sources */,
+				3D1C20A5B78BD6E6F3CC8F5E /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				46AB15AEA602251C8C85CD19 /* BatteryStripHelper */,
+				78FA2746EABFD0C4EBC9F73A /* Shared */,
+			);
+			name = BatteryStripHelper;
+			packageProductDependencies = (
+			);
+			productName = BatteryStripHelper;
+			productReference = 41DA0177F23EDAE08C231338 /* BatteryStripHelper */;
+			productType = "com.apple.product-type.tool";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		A6CEF9DB37707B6DC410E050 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 2700;
+				LastUpgradeCheck = 2700;
+				TargetAttributes = {
+					2FB3DC89902B49C7BB9E9C38 = {
+						CreatedOnToolsVersion = 27.0;
+					};
+					EFE51031B8A4BCD8F47FB2FC = {
+						CreatedOnToolsVersion = 27.0;
+					};
+				};
+			};
+			buildConfigurationList = C68544BF5B2C86209539252F /* Build configuration list for PBXProject "BatteryStrip" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 12F8ABA93BACEE4FBD85DD26;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = F2012560881F9C6B939452E3 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				2FB3DC89902B49C7BB9E9C38 /* BatteryStrip */,
+				EFE51031B8A4BCD8F47FB2FC /* BatteryStripHelper */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		70523BF0B85C4716C7E56E3F /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		C1925D4412A65F20FF00EA5A /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B88728326AFF16EC3F288C40 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		7282CA8AB3677584E5ADD550 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = EFE51031B8A4BCD8F47FB2FC /* BatteryStripHelper */;
+			targetProxy = 7A9E62C5D058EF7042AEB037 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		3FBD08694DCF65FE2AAECAC3 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				MARKETING_VERSION = 1.0;
+				CURRENT_PROJECT_VERSION = 2;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 6.0;
+			};
+			name = Debug;
+		};
+		A48D4D009B94753093063176 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = "";
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				MARKETING_VERSION = 1.0;
+				CURRENT_PROJECT_VERSION = 2;
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Release;
+		};
+		87BE2C0AC2B84F1F083B5088 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "Battery Strip";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
+				INFOPLIST_KEY_LSUIElement = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2026 vilanobeachflorida";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.batterystrip.BatteryStrip;
+				PRODUCT_MODULE_NAME = BatteryStrip;
+				PRODUCT_NAME = "Battery Strip";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_OBJC_BRIDGING_HEADER = "BatteryStrip/Support/BatteryStrip-Bridging-Header.h";
+			};
+			name = Debug;
+		};
+		2D3E7FF245E7BCF785452B4C /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "Battery Strip";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
+				INFOPLIST_KEY_LSUIElement = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2026 vilanobeachflorida";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.batterystrip.BatteryStrip;
+				PRODUCT_MODULE_NAME = BatteryStrip;
+				PRODUCT_NAME = "Battery Strip";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_OBJC_BRIDGING_HEADER = "BatteryStrip/Support/BatteryStrip-Bridging-Header.h";
+			};
+			name = Release;
+		};
+		21082DFC44424D880BF47974 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CREATE_INFOPLIST_SECTION_IN_BINARY = NO;
+				GENERATE_INFOPLIST_FILE = NO;
+				OTHER_CODE_SIGN_FLAGS = "--identifier $(PRODUCT_BUNDLE_IDENTIFIER)";
+				PRODUCT_BUNDLE_IDENTIFIER = com.batterystrip.BatteryStrip.Helper;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+			};
+			name = Debug;
+		};
+		CC6CDE4812A6388FB6576229 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CREATE_INFOPLIST_SECTION_IN_BINARY = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
+				GENERATE_INFOPLIST_FILE = NO;
+				OTHER_CODE_SIGN_FLAGS = "--identifier $(PRODUCT_BUNDLE_IDENTIFIER)";
+				PRODUCT_BUNDLE_IDENTIFIER = com.batterystrip.BatteryStrip.Helper;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		C68544BF5B2C86209539252F /* Build configuration list for PBXProject "BatteryStrip" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				3FBD08694DCF65FE2AAECAC3 /* Debug */,
+				A48D4D009B94753093063176 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		76D3BFC0DB4EAD3793F39178 /* Build configuration list for PBXNativeTarget "BatteryStrip" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				87BE2C0AC2B84F1F083B5088 /* Debug */,
+				2D3E7FF245E7BCF785452B4C /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		FEA520E43D628B59B968CD9C /* Build configuration list for PBXNativeTarget "BatteryStripHelper" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				21082DFC44424D880BF47974 /* Debug */,
+				CC6CDE4812A6388FB6576229 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = A6CEF9DB37707B6DC410E050 /* Project object */;
+}

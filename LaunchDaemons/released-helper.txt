@@ -1,0 +1,2 @@
+# The Low Power Mode helper in the last release: its launchd name and code hash. See scripts/release.sh.
+com.batterystrip.BatteryStrip.Helper3 b194d7fca56c126edd335445e21b0f26d101bc3f

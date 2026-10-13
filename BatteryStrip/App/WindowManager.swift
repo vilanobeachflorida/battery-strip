@@ -4,14 +4,17 @@ import SwiftUI
 /// Opens the Settings and Welcome windows. A menu bar app has no Dock icon, so these bring the app forward.
 final class WindowManager: NSObject, NSWindowDelegate {
     private let preferences: Preferences
+    private let monitor: BatteryMonitor
     private let lowPowerMode: LowPowerModeController
     private let setup: MenuBarSetup
     private let updates: UpdateChecker
     private var settingsWindow: NSWindow?
     private var onboardingWindow: NSWindow?
 
-    init(preferences: Preferences, lowPowerMode: LowPowerModeController, setup: MenuBarSetup, updates: UpdateChecker) {
+    init(preferences: Preferences, monitor: BatteryMonitor, lowPowerMode: LowPowerModeController, setup: MenuBarSetup,
+         updates: UpdateChecker) {
         self.preferences = preferences
+        self.monitor = monitor
         self.lowPowerMode = lowPowerMode
         self.setup = setup
         self.updates = updates
@@ -20,7 +23,7 @@ final class WindowManager: NSObject, NSWindowDelegate {
     func showSettings() {
         let window = settingsWindow ?? makeWindow(
             title: "Battery Strip Settings",
-            content: SettingsView(preferences: preferences, lowPowerMode: lowPowerMode, updates: updates) { [weak self] in
+            content: SettingsView(preferences: preferences, monitor: monitor, lowPowerMode: lowPowerMode, updates: updates) { [weak self] in
                 self?.showOnboarding()
             }
         )

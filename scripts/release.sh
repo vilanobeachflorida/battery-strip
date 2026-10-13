@@ -24,7 +24,8 @@ mkdir -p "$OUT"
 
 signing=(CODE_SIGN_IDENTITY=-)
 if [[ -n "${DEVELOPER_ID:-}" ]]; then
-  signing=(CODE_SIGN_STYLE=Manual "CODE_SIGN_IDENTITY=$DEVELOPER_ID" "OTHER_CODE_SIGN_FLAGS=--timestamp")
+  # $(inherited) keeps the helper's own --identifier flag.
+  signing=(CODE_SIGN_STYLE=Manual "CODE_SIGN_IDENTITY=$DEVELOPER_ID" 'OTHER_CODE_SIGN_FLAGS=$(inherited) --timestamp')
 fi
 
 echo "Building…"

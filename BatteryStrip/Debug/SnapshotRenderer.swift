@@ -82,6 +82,17 @@ enum SnapshotRenderer {
             }
         }
 
+        // macOS's Charge Limit at 80%: charging toward it, and holding at it with Details open.
+        preferences.showDetails = true
+        for (name, battery, estimate) in [("limit-charging", charging, TimeEstimate.untilFull(minutes: 31)),
+                                          ("limit-holding", held, TimeEstimate.notCharging)] {
+            write(PanelContent(snapshot: battery, estimate: estimate, isLowPowerMode: false, sessionWatts: 6.4, typicalWatts: 7.9,
+                               history: history, chargeLimit: 80, preferences: preferences, lowPowerMode: lowPowerMode,
+                               actions: PanelActions(openSettings: {}, openBatterySettings: {}, quit: {})),
+                  scheme: .dark, to: folder.appending(path: "\(name)-dark.png"))
+        }
+        preferences.showDetails = savedShowDetails
+
         // The notes at the top of the panel (a new version, and Apple's battery icon still in the menu bar), and the welcome guide.
         write(PanelContent(snapshot: live, estimate: .untilEmpty(minutes: 648), isLowPowerMode: false, sessionWatts: 6.4,
                            typicalWatts: 7.9, history: history, showsAppleIconReminder: true,

@@ -128,8 +128,9 @@ final class SuggestionEngine {
             if suggestion != nil { suggestion = nil }
             return
         }
-        // Keep the wording while the same thing stands out, rewriting it at most every ten minutes.
-        if finding.key == currentKey, let writtenAt, Date.now.timeIntervalSince(writtenAt) < 600, suggestion != nil { return }
+        // Keep the wording while the same thing stands out, rewriting it at most every ten minutes. This also
+        // leaves a suggestion that's still being written to finish, rather than starting it over.
+        if finding.key == currentKey, let writtenAt, Date.now.timeIntervalSince(writtenAt) < 600 { return }
         currentKey = finding.key
         writtenAt = .now
         task?.cancel()

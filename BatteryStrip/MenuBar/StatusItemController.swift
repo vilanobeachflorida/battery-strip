@@ -27,7 +27,7 @@ final class StatusItemController: NSObject {
             },
             openBatterySettings: { [weak self] in
                 self?.panel.close()
-                NSWorkspace.shared.open(URL(string: "x-apple.systempreferences:com.apple.Battery-Settings.extension")!)
+                SystemSettings.openBattery()
             },
             quit: { NSApp.terminate(nil) }
         )
@@ -89,13 +89,16 @@ final class StatusItemController: NSObject {
             description += ", \(Format.spokenDuration(minutes)) remaining"
             tooltip = "\(Format.duration(minutes)) left · " + tooltip
         case .untilFull(let minutes):
-            description += ", \(Format.spokenDuration(minutes)) until full"
-            tooltip = "\(Format.duration(minutes)) until full · " + tooltip
+            // Charging stops at the Charge Limit, unless it's already past it.
+            let target = monitor.activeChargeLimit.flatMap { snapshot.percent <= $0 ? "\($0)%" : nil } ?? "full"
+            description += ", \(Format.spokenDuration(minutes)) until \(target)"
+            tooltip = "\(Format.duration(minutes)) until \(target) · " + tooltip
         case .charged:
             description += ", fully charged"
         case .notCharging:
-            description += ", not charging"
-            tooltip += " · not charging"
+            let atLimit = monitor.activeChargeLimit.map { snapshot.percent >= $0 - 1 } ?? false
+            description += atLimit ? ", holding at the charge limit" : ", not charging"
+            tooltip += atLimit ? " · holding at charge limit" : " · not charging"
         case .calculating:
             break
         }

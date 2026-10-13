@@ -3,6 +3,8 @@ import SwiftUI
 /// The exact numbers, tucked away until asked for.
 struct DetailsSection: View {
     let snapshot: BatterySnapshot
+    /// macOS's Charge Limit, when it's below 100%.
+    var chargeLimit: Int?
     @Binding var isExpanded: Bool
 
     private struct Row: Identifiable {
@@ -71,11 +73,16 @@ struct DetailsSection: View {
             rows.append(Row(label: "Mac power use", value: Format.watts(system)))
         }
         if let adapter = snapshot.adapter {
-            let name = [adapter.watts.map { "\($0) W" }, adapter.name].compactMap { $0 }.joined(separator: " ")
+            // Apple's adapters already name their wattage, as in "96W USB-C Power Adapter".
+            let nameHasWatts = adapter.watts.map { watts in adapter.name?.contains("\(watts)W") == true } ?? false
+            let name = [nameHasWatts ? nil : adapter.watts.map { "\($0) W" }, adapter.name].compactMap { $0 }.joined(separator: " ")
             rows.append(Row(label: "Adapter", value: name.isEmpty ? "Connected" : name))
         }
         if let input = snapshot.adapterPower {
             rows.append(Row(label: "From adapter", value: Format.watts(input)))
+        }
+        if let chargeLimit {
+            rows.append(Row(label: "Charge limit", value: "\(chargeLimit)%"))
         }
         if let estimate = snapshot.isPluggedIn ? snapshot.systemTimeToFull : snapshot.systemTimeToEmpty {
             rows.append(Row(label: "macOS estimate", value: Format.duration(estimate)))

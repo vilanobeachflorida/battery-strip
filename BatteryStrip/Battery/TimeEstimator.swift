@@ -39,8 +39,9 @@ nonisolated struct LearnedBehavior: Codable {
         typicalDrawMA = try container.decodeIfPresent(Double.self, forKey: .typicalDrawMA)
         batteryHours = try container.decodeIfPresent(Double.self, forKey: .batteryHours) ?? 0
         percentFit = try container.decodeIfPresent(LinearFit.self, forKey: .percentFit) ?? LinearFit()
-        topChargeMinutes = try container.decodeIfPresent([Double?].self, forKey: .topChargeMinutes)
-            ?? Array(repeating: nil, count: 20)
+        // Charging looks this up by percent, so it always has exactly 20 entries, whatever was stored.
+        let topCharge = try container.decodeIfPresent([Double?].self, forKey: .topChargeMinutes) ?? []
+        topChargeMinutes = Array((topCharge + Array(repeating: nil, count: 20)).prefix(20))
         sessionReadings = try container.decodeIfPresent([Double].self, forKey: .sessionReadings)
         sessionSavedAt = try container.decodeIfPresent(Date.self, forKey: .sessionSavedAt)
     }
@@ -86,6 +87,8 @@ final class TimeEstimator {
     private var learned: LearnedBehavior
     private var session = Session()
     private var shown: Shown?
+    /// What's already in UserDefaults, so an unchanged save is skipped.
+    private var savedData: Data?
     private static let storageKey = "LearnedBehavior"
 
     private struct Session {
@@ -109,6 +112,7 @@ final class TimeEstimator {
         if let data = UserDefaults.standard.data(forKey: Self.storageKey),
            let saved = try? JSONDecoder().decode(LearnedBehavior.self, from: data) {
             learned = saved
+            savedData = data
         } else {
             learned = LearnedBehavior()
         }
@@ -116,13 +120,15 @@ final class TimeEstimator {
 
     func save() {
         learned.sessionReadings = session.readings.isEmpty ? nil : session.readings
-        learned.sessionSavedAt = session.readings.isEmpty ? nil : .now
-        if let data = try? JSONEncoder().encode(learned) {
-            UserDefaults.standard.set(data, forKey: Self.storageKey)
-        }
+        // When the last reading was taken, so a relaunch can tell whether the readings are still fresh.
+        learned.sessionSavedAt = session.readings.isEmpty ? nil : session.lastReading ?? .now
+        guard let data = try? JSONEncoder().encode(learned), data != savedData else { return }
+        UserDefaults.standard.set(data, forKey: Self.storageKey)
+        savedData = data
     }
 
-    func ingest(_ snapshot: BatterySnapshot, isNewReading: Bool, now: Date = .now) {
+    /// `chargeLimit` is macOS's Charge Limit when it's below 100%, so charging is timed to where it stops.
+    func ingest(_ snapshot: BatterySnapshot, isNewReading: Bool, chargeLimit: Int? = nil, now: Date = .now) {
         guard snapshot.fullChargeCapacity > 0 else {
             estimate = .calculating
             return
@@ -142,7 +148,7 @@ final class TimeEstimator {
         if snapshot.isPluggedIn {
             session.isDischarging = false
             session.readings = []
-            estimate = chargingEstimate(snapshot, charge: charge, isNewReading: isNewReading, dt: dt, now: now)
+            estimate = chargingEstimate(snapshot, charge: charge, isNewReading: isNewReading, dt: dt, chargeLimit: chargeLimit, now: now)
         } else {
             session.chargeMA = nil
             session.peakChargeMA = 0
@@ -193,7 +199,8 @@ final class TimeEstimator {
 
     // MARK: - Plugged in
 
-    private func chargingEstimate(_ snapshot: BatterySnapshot, charge: Double, isNewReading: Bool, dt: Double, now: Date) -> TimeEstimate {
+    private func chargingEstimate(_ snapshot: BatterySnapshot, charge: Double, isNewReading: Bool, dt: Double,
+                                  chargeLimit: Int?, now: Date) -> TimeEstimate {
         if snapshot.isFullyCharged || snapshot.percent >= 100 {
             shown = nil
             return .charged
@@ -219,8 +226,11 @@ final class TimeEstimator {
         let mAhPerPercent = (chargeFraction(atPercent: 100, snapshot, charge: charge)
             - chargeFraction(atPercent: 0, snapshot, charge: charge)) / 100 * capacity
         let progress = progressThroughCurrentPercent(snapshot, charge: charge)
+        // Charging stops at the Charge Limit. Past it, macOS is topping up to 100%, as it occasionally does
+        // to keep its readings accurate.
+        let target = chargeLimit.map { snapshot.percent <= $0 ? $0 : 100 } ?? 100
         var minutes = 0.0
-        for percent in snapshot.percent..<100 {
+        for percent in snapshot.percent..<max(snapshot.percent, target) {
             var stepMinutes: Double
             if percent < 80 {
                 stepMinutes = mAhPerPercent / chargeMA * 60
@@ -234,7 +244,8 @@ final class TimeEstimator {
             if percent == snapshot.percent { stepMinutes *= 1 - progress }
             minutes += stepMinutes
         }
-        return .untilFull(minutes: stabilize(Int(minutes.rounded()), isCharging: true, now: now))
+        // Already showing the limit and about to stop: say a minute rather than none.
+        return .untilFull(minutes: stabilize(max(1, Int(minutes.rounded())), isCharging: true, now: now))
     }
 
     /// Times how long each percent from 80 up takes, so later estimates know this battery's slow finish.

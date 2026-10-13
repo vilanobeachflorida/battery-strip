@@ -19,6 +19,7 @@ final class LowPowerModeController {
     @ObservationIgnored private var pendingValue: Bool?
     @ObservationIgnored private let service = SMAppService.daemon(plistName: HelperConstants.launchDaemonPlistName)
     @ObservationIgnored private var connection: NSXPCConnection?
+    @ObservationIgnored private var connectionGeneration = 0
     @ObservationIgnored private var timeout: Task<Void, Never>?
 
     private static let setUpHelperKey = "SetUpHelper"
@@ -144,8 +145,13 @@ final class LowPowerModeController {
     private func makeConnection() -> NSXPCConnection {
         let connection = NSXPCConnection(machServiceName: HelperConstants.machServiceName, options: .privileged)
         connection.remoteObjectInterface = NSXPCInterface(with: BatteryStripHelperProtocol.self)
+        connectionGeneration += 1
+        let generation = connectionGeneration
         connection.invalidationHandler = { @Sendable [weak self] in
-            Task { @MainActor in self?.connection = nil }
+            // Forget this connection only, not a newer one made since it was replaced.
+            Task { @MainActor in
+                if let self, self.connectionGeneration == generation { self.connection = nil }
+            }
         }
         connection.resume()
         self.connection = connection

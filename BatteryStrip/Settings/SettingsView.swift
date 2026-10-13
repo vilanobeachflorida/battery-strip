@@ -3,6 +3,7 @@ import SwiftUI
 
 struct SettingsView: View {
     @Bindable var preferences: Preferences
+    let monitor: BatteryMonitor
     let lowPowerMode: LowPowerModeController
     let updates: UpdateChecker
     let showWelcomeGuide: () -> Void
@@ -34,6 +35,18 @@ struct SettingsView: View {
                     }
                 }
                 Toggle("Fully charged", isOn: $preferences.fullyChargedAlert)
+            }
+
+            Section {
+                LabeledContent("Charge limit", value: chargeLimitText)
+                LabeledContent("Set in System Settings") {
+                    Button("Open Battery Settings…") { SystemSettings.openBattery() }
+                }
+            } header: {
+                Text("Charging")
+            } footer: {
+                Text("macOS can stop charging at 80% to 95%, which reduces battery wear. In Battery settings, click ⓘ next to Charging. Battery Strip shows the limit and times charging to it.")
+                    .foregroundStyle(.secondary)
             }
 
             Section {
@@ -99,6 +112,7 @@ struct SettingsView: View {
         .onAppear {
             openAtLogin = LaunchAtLogin.isEnabled
             lowPowerMode.refreshHelperStatus()
+            monitor.refreshChargeLimit()
         }
         .onChange(of: openAtLogin) { _, enabled in
             guard enabled != LaunchAtLogin.isEnabled else { return }
@@ -112,6 +126,14 @@ struct SettingsView: View {
 
     private var alertsEnabled: Bool {
         preferences.lowBatteryAlert || preferences.unplugAlert || preferences.fullyChargedAlert
+    }
+
+    private var chargeLimitText: String {
+        switch monitor.chargeLimit {
+        case .none: "–"
+        case .some(100): "None"
+        case .some(let limit): "\(limit)%"
+        }
     }
 
     private var updateStatus: String {
@@ -137,5 +159,10 @@ enum SystemSettings {
     /// Where the Battery menu bar item is switched on and off.
     static func openMenuBar() {
         NSWorkspace.shared.open(URL(string: "x-apple.systempreferences:com.apple.ControlCenter-Settings.extension")!)
+    }
+
+    /// Battery settings, home of macOS's Charge Limit (under ⓘ next to Charging).
+    static func openBattery() {
+        NSWorkspace.shared.open(URL(string: "x-apple.systempreferences:com.apple.Battery-Settings.extension")!)
     }
 }

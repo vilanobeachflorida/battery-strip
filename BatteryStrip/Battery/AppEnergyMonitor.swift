@@ -4,7 +4,7 @@ import Observation
 
 /// Which apps are using the most energy, from the processor energy macOS attributes to each process.
 ///
-/// It samples once a minute, which takes a few milliseconds, and again whenever the panel opens.
+/// It samples about once a minute, which takes a few milliseconds, and again whenever the panel opens.
 /// Helper processes count toward the app they belong to, so Chrome's renderers show up as Chrome.
 @Observable
 final class AppEnergyMonitor {
@@ -32,14 +32,25 @@ final class AppEnergyMonitor {
         let key: String
     }
 
+    /// Battery readings already wake the app about once a minute, so sampling rides along with them
+    /// (see `batteryDidUpdate`). The timer is only a backstop for when the battery goes quiet, such as on
+    /// power with a full battery, and every sample pushes it back.
+    private static let backstopInterval: TimeInterval = 90
+
     func start() {
         sample()
-        let timer = Timer(timeInterval: 60, repeats: true) { [weak self] _ in
+        let timer = Timer(timeInterval: Self.backstopInterval, repeats: true) { [weak self] _ in
             MainActor.assumeIsolated { self?.sample() }
         }
-        timer.tolerance = 20
+        timer.tolerance = 30
         RunLoop.main.add(timer, forMode: .common)
         self.timer = timer
+    }
+
+    /// Called with each new battery reading.
+    func batteryDidUpdate() {
+        if let lastSample, Date.now.timeIntervalSince(lastSample) < 45 { return }
+        sample()
     }
 
     /// Takes a fresh sample unless one was taken in the last few seconds.
@@ -81,6 +92,7 @@ final class AppEnergyMonitor {
         }
         counters = next
         lastSample = now
+        timer?.fireDate = now.addingTimeInterval(Self.backstopInterval)
         guard interval > 1 else { return }
 
         // Average over a few minutes, so a brief burst doesn't top the list and a busy app stays visible.
@@ -135,17 +147,39 @@ final class AppEnergyMonitor {
     }
 
     /// Groups a process under the app people know: helpers live inside their app's bundle, so the
-    /// outermost .app in the path is the one to show.
+    /// outermost .app in the path is the one to show. System services doing work for an app, such as the
+    /// processes behind Safari's tabs or a video decoder, count toward that app too.
     private static func appKey(for pid: pid_t) -> String {
-        var buffer = [CChar](repeating: 0, count: Int(MAXPATHLEN))
-        guard proc_pidpath(pid, &buffer, UInt32(buffer.count)) > 0 else { return "macOS" }
-        let path = String(decoding: buffer.prefix { $0 != 0 }.map { UInt8(bitPattern: $0) }, as: UTF8.self)
-        if let range = path.range(of: ".app/") {
-            return String(path[..<range.upperBound].dropLast())
+        guard let path = path(of: pid) else { return "macOS" }
+        if let app = outermostApp(in: path) { return app }
+        guard path.hasPrefix("/System/") || path.hasPrefix("/usr/") || path.hasPrefix("/Library/Apple/") else {
+            return (path as NSString).lastPathComponent
         }
-        if path.hasPrefix("/System/") || path.hasPrefix("/usr/") || path.hasPrefix("/Library/Apple/") {
-            return "macOS"
+        if let owner = responsiblePID?(pid), owner != pid, let ownerPath = Self.path(of: owner),
+           let app = outermostApp(in: ownerPath) {
+            return app
         }
-        return (path as NSString).lastPathComponent
+        return "macOS"
     }
+
+    private static func path(of pid: pid_t) -> String? {
+        var buffer = [CChar](repeating: 0, count: Int(MAXPATHLEN))
+        guard proc_pidpath(pid, &buffer, UInt32(buffer.count)) > 0 else { return nil }
+        return String(decoding: buffer.prefix { $0 != 0 }.map { UInt8(bitPattern: $0) }, as: UTF8.self)
+    }
+
+    private static func outermostApp(in path: String) -> String? {
+        path.range(of: ".app/").map { String(path[..<$0.upperBound].dropLast()) }
+    }
+
+    /// The process macOS holds responsible for another, which Activity Monitor groups by. It isn't public
+    /// API, so it's looked up at runtime, and system services simply stay under "macOS" if it's missing.
+    private static let responsiblePID: ((pid_t) -> pid_t)? = {
+        // RTLD_DEFAULT
+        guard let symbol = dlsym(UnsafeMutableRawPointer(bitPattern: -2), "responsibility_get_pid_responsible_for_pid") else {
+            return nil
+        }
+        let function = unsafeBitCast(symbol, to: (@convention(c) (pid_t) -> pid_t).self)
+        return { function($0) }
+    }()
 }

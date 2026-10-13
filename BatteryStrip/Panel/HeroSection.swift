@@ -7,6 +7,8 @@ struct HeroSection: View {
     let isLowPowerMode: Bool
     let sessionWatts: Double?
     let typicalWatts: Double?
+    /// macOS's Charge Limit, when it's below 100%.
+    var chargeLimit: Int?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -55,12 +57,21 @@ struct HeroSection: View {
     }
 
     private var caption: String {
+        // At (or within a percent of) the Charge Limit, it's what stopped charging.
+        let limitReached = chargeLimit.map { snapshot.percent >= $0 - 1 } ?? false
         switch estimate {
-        case .untilEmpty: isLowPowerMode ? "left on battery · Low Power Mode" : "left on battery"
-        case .untilFull: "until fully charged"
-        case .charged: "Fully charged and running on power."
-        case .notCharging: "Plugged in and holding here. Optimized Battery Charging or a charge limit is protecting the battery."
-        case .calculating: snapshot.isPluggedIn ? "Working out how long charging will take." : "Working out how long you have left."
+        case .untilEmpty: return isLowPowerMode ? "left on battery · Low Power Mode" : "left on battery"
+        case .untilFull:
+            if let chargeLimit, snapshot.percent <= chargeLimit { return "until \(chargeLimit)%, your charge limit" }
+            return "until fully charged"
+        case .charged:
+            if let chargeLimit, limitReached, snapshot.percent < 100 { return "Charged to your \(chargeLimit)% limit and running on power." }
+            return "Fully charged and running on power."
+        case .notCharging:
+            if let chargeLimit, limitReached { return "Plugged in and holding at your \(chargeLimit)% charge limit." }
+            return "Plugged in and holding here. Optimized Battery Charging or a charge limit is protecting the battery."
+        case .calculating:
+            return snapshot.isPluggedIn ? "Working out how long charging will take." : "Working out how long you have left."
         }
     }
 

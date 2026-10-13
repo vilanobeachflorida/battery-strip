@@ -15,10 +15,22 @@ final class BatteryMonitor {
     private(set) var sessionWatts: Double?
     /// What this Mac usually draws on battery, in watts.
     private(set) var typicalWatts: Double?
+    /// macOS's Charge Limit: 100 when there's none, nil when it can't be told (see `ChargeLimitReader`).
+    private(set) var chargeLimit: Int?
+
+    /// The limit charging stops at, when there is one below 100%.
+    var activeChargeLimit: Int? {
+        chargeLimit.flatMap { $0 < 100 ? $0 : nil }
+    }
 
     /// While the panel is open, readings also include temperature.
     var isPanelVisible = false {
-        didSet { if isPanelVisible && !oldValue { refresh() } }
+        didSet {
+            if isPanelVisible && !oldValue {
+                refresh()
+                refreshChargeLimit()
+            }
+        }
     }
 
     /// Called after each new battery reading, with the one before it.
@@ -32,6 +44,7 @@ final class BatteryMonitor {
 
     func start() {
         refresh()
+        refreshChargeLimit()
 
         let context = Unmanaged.passUnretained(self).toOpaque()
         if let source = IOPSNotificationCreateRunLoopSource(powerSourcesChanged, context)?.takeRetainedValue() {
@@ -69,7 +82,7 @@ final class BatteryMonitor {
             || reading.isPluggedIn != previous?.isPluggedIn
             || reading.isCharging != previous?.isCharging
 
-        estimator.ingest(reading, isNewReading: isNewReading)
+        estimator.ingest(reading, isNewReading: isNewReading, chargeLimit: activeChargeLimit)
         if snapshot != reading { snapshot = reading }
         if estimate != estimator.estimate { estimate = estimator.estimate }
 
@@ -81,6 +94,21 @@ final class BatteryMonitor {
         if isNewReading {
             history.record(reading)
             onNewReading?(previous, reading)
+        }
+        // The limit only matters plugged in, and is most likely to have changed since the last time.
+        if previous != nil, reading.isPluggedIn != previous?.isPluggedIn {
+            refreshChargeLimit()
+        }
+    }
+
+    /// Reads macOS's Charge Limit in the background (it runs `pmset`), then updates the estimate to match.
+    /// It's read at launch, when the charger is connected or removed, and when the panel or Settings opens.
+    func refreshChargeLimit() {
+        Task { [weak self] in
+            let limit = await Task.detached(priority: .utility) { ChargeLimitReader.read() }.value
+            guard let self, limit != chargeLimit else { return }
+            chargeLimit = limit
+            refresh()
         }
     }
 

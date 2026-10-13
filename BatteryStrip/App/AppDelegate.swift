@@ -8,7 +8,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private let energy = AppEnergyMonitor()
     private let suggestions = SuggestionEngine()
     private lazy var updates = UpdateChecker(preferences: preferences)
-    private lazy var windows = WindowManager(preferences: preferences, lowPowerMode: lowPowerMode, setup: setup, updates: updates)
+    private lazy var windows = WindowManager(preferences: preferences, monitor: monitor, lowPowerMode: lowPowerMode, setup: setup,
+                                                updates: updates)
     private var statusItem: StatusItemController?
     private var alerts: AlertManager?
 
@@ -31,12 +32,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         energy.start()
         updates.start()
         alerts = AlertManager(monitor: monitor, preferences: preferences)
+        // Each new battery reading, about once a minute, also checks the alerts and samples app energy,
+        // so the app wakes once a minute rather than once per job.
+        monitor.onNewReading = { [weak self] previous, current in
+            self?.alerts?.evaluate(previous: previous, current: current)
+            self?.energy.batteryDidUpdate()
+        }
         statusItem = StatusItemController(monitor: monitor, preferences: preferences, lowPowerMode: lowPowerMode, setup: setup,
                                           energy: energy, suggestions: suggestions, updates: updates, windows: windows)
         if !preferences.hasCompletedOnboarding {
-            // It stands in for a system icon, so it should be there after every restart.
-            // The welcome guide shows this switched on, and it can be turned off there or in Settings.
-            LaunchAtLogin.setEnabled(true)
+            // It stands in for a system icon, so it should be there after every restart. The welcome guide
+            // shows this switched on, and it can be turned off there or in Settings. Not from the disk image
+            // or Downloads, though, where a login item would stop working once the app is moved or ejected.
+            if ApplicationsFolderMover.isRunningFromApplications {
+                LaunchAtLogin.setEnabled(true)
+            }
             windows.showOnboarding()
         }
     }

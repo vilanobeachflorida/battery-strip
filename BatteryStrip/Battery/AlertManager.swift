@@ -11,16 +11,14 @@ final class AlertManager: NSObject, UNUserNotificationCenterDelegate {
         self.preferences = preferences
         super.init()
         UNUserNotificationCenter.current().delegate = self
-        monitor.onNewReading = { [weak self] previous, current in
-            self?.evaluate(previous: previous, current: current)
-        }
     }
 
     static func requestPermission() async {
         _ = try? await UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound])
     }
 
-    private func evaluate(previous: BatterySnapshot?, current: BatterySnapshot) {
+    /// Called with each new battery reading and the one before it.
+    func evaluate(previous: BatterySnapshot?, current: BatterySnapshot) {
         guard let previous else { return }
 
         let low = preferences.lowBatteryThreshold

@@ -35,6 +35,10 @@ enum ApplicationsFolderMover {
         #endif
     }
 
+    static var isRunningFromApplications: Bool {
+        isInApplicationsFolder(Bundle.main.bundleURL)
+    }
+
     private static func isInApplicationsFolder(_ url: URL) -> Bool {
         let path = url.resolvingSymlinksInPath().path
         return applicationsFolders().contains { path.hasPrefix($0.path + "/") }

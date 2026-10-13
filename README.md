@@ -39,7 +39,7 @@ It replaces the battery icon in your menu bar with one that shows the time you h
 
 ### Battery time remaining in the menu bar
 
-The menu bar battery reads `4:32` instead of a bare icon, so you always know how long your Mac will last. While charging, it shows the time until full, turns green and adds a bolt. It turns yellow in Low Power Mode and red when the battery is nearly empty. Prefer the battery percentage? Switch it in Settings.
+The menu bar battery reads `4:32` instead of a bare icon, so you always know how long your Mac will last. While charging, it shows the time until full (or until your charge limit), turns green and adds a bolt. It turns yellow in Low Power Mode and red when the battery is nearly empty. Prefer the battery percentage? Switch it in Settings.
 
 <p align="center">
   <picture>
@@ -80,7 +80,7 @@ When something stands out, like one app using far more energy than everything el
 
 ### Built for Liquid Glass and macOS Tahoe
 
-A native SwiftUI and AppKit app designed for macOS 26's Liquid Glass. It reads the battery only when macOS reports a change, about once a minute, so it uses about 20 MB of memory and effectively no CPU when idle.
+A native SwiftUI and AppKit app designed for macOS 26's Liquid Glass. It reads the battery only when macOS reports a change, about once a minute, so it uses 20 to 50 MB of memory and effectively no CPU when idle.
 
 ## Download and install
 
@@ -110,7 +110,7 @@ Yes. Battery Strip is completely free and open source under the GPL-3.0 license,
 
 ### Does Battery Strip drain my battery?
 
-No. It doesn't poll: it reads the battery only when macOS reports a change, about once a minute, and does almost nothing in between. It uses about 20 MB of memory, and checking for updates is one small request twice a week.
+No. It doesn't poll: it reads the battery only when macOS reports a change, about once a minute, and does almost nothing in between. It uses 20 to 50 MB of memory, and checking for updates is one small request twice a week.
 
 ### Why does macOS say Battery Strip can't be verified?
 
@@ -129,6 +129,10 @@ MacBooks with Apple silicon (M1 and later) running macOS 26 Tahoe or later.
 ### How do I hide Apple's battery icon?
 
 Open **System Settings › Menu Bar** and, under **Menu Bar Controls**, turn off **Battery**. Battery Strip's welcome guide takes you there and ticks the step off once it's done.
+
+### Can Battery Strip limit charging?
+
+macOS 26.4 and later can stop charging at 80% to 95% to reduce battery wear: open **System Settings › Battery** and click ⓘ next to **Charging**. Battery Strip doesn't change that limit itself, but it shows it, says when it's holding the battery there, and times charging to it.
 
 ### Why does the Low Power Mode switch need approval?
 

@@ -39,6 +39,7 @@ struct PanelView: View {
             appIcon: energy.icon(for:),
             suggestion: preferences.showSuggestions ? suggestions.suggestion : nil,
             showsAppleIconReminder: setup.isAppleBatteryIconShown == true && !preferences.dismissedAppleIconReminder,
+            chargeLimit: monitor.activeChargeLimit,
             update: updates.notice,
             dismissUpdate: updates.dismiss,
             preferences: preferences,
@@ -60,6 +61,8 @@ struct PanelContent: View {
     var appIcon: (String) -> NSImage? = { _ in nil }
     var suggestion: SuggestionEngine.Suggestion?
     var showsAppleIconReminder = false
+    /// macOS's Charge Limit, when it's below 100%.
+    var chargeLimit: Int?
     var update: UpdateChecker.Update?
     var dismissUpdate: () -> Void = {}
     @Bindable var preferences: Preferences
@@ -85,7 +88,8 @@ struct PanelContent: View {
                     estimate: estimate,
                     isLowPowerMode: isLowPowerMode,
                     sessionWatts: sessionWatts,
-                    typicalWatts: typicalWatts
+                    typicalWatts: typicalWatts,
+                    chargeLimit: chargeLimit
                 )
                 if let suggestion {
                     SuggestionCard(suggestion: suggestion)
@@ -94,7 +98,7 @@ struct PanelContent: View {
                 StatTiles(snapshot: snapshot, temperatureUnit: preferences.temperatureUnit)
                 EnergySection(apps: apps, icon: appIcon)
                 HistoryChart(points: history)
-                DetailsSection(snapshot: snapshot, isExpanded: $preferences.showDetails)
+                DetailsSection(snapshot: snapshot, chargeLimit: chargeLimit, isExpanded: $preferences.showDetails)
             } else {
                 ContentUnavailableView(
                     "No Battery Found",

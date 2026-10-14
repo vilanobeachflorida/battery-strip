@@ -15,13 +15,19 @@ final class BatteryMonitor {
     private(set) var sessionWatts: Double?
     /// What this Mac usually draws on battery, in watts.
     private(set) var typicalWatts: Double?
-    /// macOS's Charge Limit: 100 when there's none, nil when it can't be told (see `ChargeLimitReader`).
-    private(set) var chargeLimit: Int?
+    /// macOS's charge limits, or nil when they can't be told (see `ChargeLimitReader`).
+    private(set) var chargeLimits: ChargeLimitReader.Limits?
+
+    /// The Charge Limit set in System Settings: 100 when there's none, nil when it can't be told.
+    var chargeLimit: Int? { chargeLimits?.manual }
 
     /// The limit charging stops at, when there is one below 100%.
     var activeChargeLimit: Int? {
         chargeLimit.flatMap { $0 < 100 ? $0 : nil }
     }
+
+    /// Where Optimized Battery Charging is holding the battery until it's needed, when it is.
+    var optimizedChargingHold: Int? { chargeLimits?.optimizedHold }
 
     /// While the panel is open, readings also include temperature.
     var isPanelVisible = false {
@@ -41,6 +47,7 @@ final class BatteryMonitor {
     @ObservationIgnored private var runLoopSource: CFRunLoopSource?
     @ObservationIgnored private var observers: [NSObjectProtocol] = []
     @ObservationIgnored private var saveTimer: Timer?
+    @ObservationIgnored private var temperatureReadAt = Date.distantPast
 
     func start() {
         refresh()
@@ -72,10 +79,14 @@ final class BatteryMonitor {
     }
 
     func refresh() {
-        guard var reading = BatteryReader.read(includeTemperature: isPanelVisible) else {
+        // The health forecast weighs how warm the battery runs, so with the panel closed it's still read every ten
+        // minutes or so. That's under a millisecond of work each time.
+        let includeTemperature = isPanelVisible || Date.now.timeIntervalSince(temperatureReadAt) >= 600
+        guard var reading = BatteryReader.read(includeTemperature: includeTemperature) else {
             snapshot = nil
             return
         }
+        if includeTemperature { temperatureReadAt = .now }
         let previous = snapshot
         if reading.temperature == nil { reading.temperature = previous?.temperature }
         let isNewReading = reading.date != previous?.date
@@ -105,9 +116,9 @@ final class BatteryMonitor {
     /// It's read at launch, when the charger is connected or removed, and when the panel or Settings opens.
     func refreshChargeLimit() {
         Task { [weak self] in
-            let limit = await Task.detached(priority: .utility) { ChargeLimitReader.read() }.value
-            guard let self, limit != chargeLimit else { return }
-            chargeLimit = limit
+            let limits = await Task.detached(priority: .utility) { ChargeLimitReader.read() }.value
+            guard let self, limits != chargeLimits else { return }
+            chargeLimits = limits
             refresh()
         }
     }
@@ -115,6 +126,13 @@ final class BatteryMonitor {
     func saveState() {
         history.save()
         estimator.save()
+    }
+
+    /// Where the battery's health is heading. It's worked out when asked for, while the health section is open.
+    func healthForecast(now: Date = .now) -> HealthForecast? {
+        guard let snapshot else { return nil }
+        return HealthForecast.make(records: history.healthLog, snapshot: snapshot, minutesPerMAh: estimator.fullChargeMinutesPerMAh,
+                                   chargeLimit: chargeLimit, now: now)
     }
 }
 

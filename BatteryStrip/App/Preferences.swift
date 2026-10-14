@@ -31,6 +31,7 @@ final class Preferences {
     var colorfulIcon: Bool { didSet { save(colorfulIcon, Key.colorfulIcon) } }
     var temperatureUnit: TemperatureUnit { didSet { save(temperatureUnit.rawValue, Key.temperatureUnit) } }
     var showDetails: Bool { didSet { save(showDetails, Key.showDetails) } }
+    var showHealth: Bool { didSet { save(showHealth, Key.showHealth) } }
     var lowBatteryAlert: Bool { didSet { save(lowBatteryAlert, Key.lowBatteryAlert) } }
     var lowBatteryThreshold: Int { didSet { save(lowBatteryThreshold, Key.lowBatteryThreshold) } }
     var unplugAlert: Bool { didSet { save(unplugAlert, Key.unplugAlert) } }
@@ -49,6 +50,7 @@ final class Preferences {
         static let colorfulIcon = "ColorfulIcon"
         static let temperatureUnit = "TemperatureUnit"
         static let showDetails = "ShowDetails"
+        static let showHealth = "ShowHealth"
         static let lowBatteryAlert = "LowBatteryAlert"
         static let lowBatteryThreshold = "LowBatteryThreshold"
         static let unplugAlert = "UnplugAlert"
@@ -76,6 +78,7 @@ final class Preferences {
         temperatureUnit = defaults.string(forKey: Key.temperatureUnit).flatMap(TemperatureUnit.init)
             ?? (Locale.current.measurementSystem == .us ? .fahrenheit : .celsius)
         showDetails = defaults.bool(forKey: Key.showDetails)
+        showHealth = defaults.bool(forKey: Key.showHealth)
         lowBatteryAlert = defaults.bool(forKey: Key.lowBatteryAlert)
         lowBatteryThreshold = defaults.integer(forKey: Key.lowBatteryThreshold)
         unplugAlert = defaults.bool(forKey: Key.unplugAlert)

@@ -33,7 +33,7 @@
 
 Apple took the time remaining estimate out of the Mac's battery menu years ago, and the apps that bring it back usually cost money. Knowing how long your battery will last shouldn't be a paid feature, so Battery Strip is free and open source.
 
-It replaces the battery icon in your menu bar with one that shows the time you have left, right inside the battery. One click opens everything else you'd want to know about your MacBook's battery.
+It replaces the battery icon in your menu bar with one that shows the time you have left, right inside the battery. One click opens everything else you'd want to know about your MacBook's battery, down to a forecast of its health.
 
 ## Features
 
@@ -54,11 +54,24 @@ macOS gives several different battery estimates at once, and they swing with eve
 
 ### MacBook battery health, cycle count, temperature and age
 
-- **Battery health**, the same "Maximum Capacity" figure System Settings shows, with the exact capacity in mAh
+- **Battery health**, how much the battery holds compared with when it was new, within a percent or two of the "Maximum Capacity" figure in System Settings, with the exact capacity in mAh
 - **Cycle count**, compared with the 1,000 cycles Apple rates Mac batteries for
 - **Battery temperature**
 - **When the battery was manufactured** and how old it is, on Macs that report it
 - Voltage, current, charger wattage and power drawn from the adapter
+
+### Battery health forecast
+
+Click **Health** to see your battery's health from the day it was made, and where it's heading at your pace: its health in a year, when it should reach 80% (the level where Apple recommends a battery service), and how long a full charge lasts when new, now and in two years.
+
+Rather than drawing a straight line through a few readings, Battery Strip models the two ways a battery wears out: age, which wears it faster when it's warm or sitting at full charge, and charge cycles. It fits that model to your own battery's readings and follows your own pace of cycles, heat and charge. The forecast shows its likely range, which narrows as Battery Strip records more of your battery's health, and it tells you when a Charge Limit would make a real difference.
+
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="Design/Screenshots/health-dark.jpg">
+    <img src="Design/Screenshots/health-light.jpg" width="480" alt="Battery Strip's battery health forecast: health from new with the forecast and its likely range, when the battery should reach 80%, what an 80% Charge Limit would add, and how long a full charge lasts when new, now and in two years">
+  </picture>
+</p>
 
 ### See which apps are draining your battery
 
@@ -102,7 +115,11 @@ macOS no longer shows how long your battery will last in the menu bar. Install B
 
 ### How do I check my MacBook battery health and cycle count?
 
-Click Battery Strip in the menu bar. Battery health and cycle count are right in the panel, and **Details** shows the battery's full charge capacity in mAh, its capacity when new, and when it was manufactured.
+Click Battery Strip in the menu bar. Battery health and cycle count are right in the panel, and **Details** shows the battery's maximum capacity in mAh, its capacity when new, and when it was manufactured. Click **Health** for its history and a forecast of where it's heading.
+
+### How does Battery Strip forecast battery health?
+
+Batteries wear out in two ways: with age, faster when they're warm or kept at full charge, and with each charge cycle. Battery Strip starts from how a typical Mac battery ages, so it has a forecast from the first day, then fits it to your own battery as it records the battery's health each day, along with how long it spends at what charge and temperature. The shaded band shows the forecast's likely range. It's an estimate, and it sharpens the longer Battery Strip runs. Everything stays on your Mac.
 
 ### Is Battery Strip really free?
 
@@ -132,7 +149,7 @@ Open **System Settings › Menu Bar** and, under **Menu Bar Controls**, turn off
 
 ### Can Battery Strip limit charging?
 
-macOS 26.4 and later can stop charging at 80% to 95% to reduce battery wear: open **System Settings › Battery** and click ⓘ next to **Charging**. Battery Strip doesn't change that limit itself, but it shows it, says when it's holding the battery there, and times charging to it.
+macOS 26.4 and later can stop charging at 80% to 95% to reduce battery wear: open **System Settings › Battery** and click ⓘ next to **Charging**. Battery Strip doesn't change that limit itself, but it shows it, says when it's holding the battery there, and times charging to it. It also tells you when Optimized Battery Charging is holding the battery at 80% for now.
 
 ### Why does the Low Power Mode switch need approval?
 
@@ -176,7 +193,7 @@ The app icon is generated from `Design/AppIcon.png` with `swift scripts/make-ico
 | Folder | What's in it |
 |---|---|
 | `BatteryStrip/App` | Startup, preferences, windows, opening at login, moving into Applications and checking for updates |
-| `BatteryStrip/Battery` | Reading the battery, the time remaining estimator, history, app energy, suggestions and notifications |
+| `BatteryStrip/Battery` | Reading the battery, the time remaining estimator, the health forecast, history, app energy, suggestions and notifications |
 | `BatteryStrip/MenuBar` | The menu bar battery, the glass panel and detecting Apple's battery icon |
 | `BatteryStrip/Panel` | The panel's SwiftUI views |
 | `BatteryStrip/Onboarding` | The welcome guide |

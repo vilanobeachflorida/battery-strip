@@ -22,6 +22,7 @@ enum SnapshotRenderer {
         let history = sampleHistory(endingAt: live.percent)
         let preferences = Preferences.shared
         let savedShowDetails = preferences.showDetails
+        let savedShowHealth = preferences.showHealth
 
         var charging = live
         charging.percent = 64
@@ -82,16 +83,43 @@ enum SnapshotRenderer {
             }
         }
 
-        // macOS's Charge Limit at 80%: charging toward it, and holding at it with Details open.
+        // macOS's Charge Limit at 80%: charging toward it, and holding at it with Details open. Then a 95% limit
+        // while Optimized Battery Charging holds the battery at 80% for now.
         preferences.showDetails = true
-        for (name, battery, estimate) in [("limit-charging", charging, TimeEstimate.untilFull(minutes: 31)),
-                                          ("limit-holding", held, TimeEstimate.notCharging)] {
-            write(PanelContent(snapshot: battery, estimate: estimate, isLowPowerMode: false, sessionWatts: 6.4, typicalWatts: 7.9,
-                               history: history, chargeLimit: 80, preferences: preferences, lowPowerMode: lowPowerMode,
+        let limitStates: [(name: String, battery: BatterySnapshot, estimate: TimeEstimate, limit: Int, optimizedHold: Int?)] = [
+            ("limit-charging", charging, .untilFull(minutes: 31), 80, nil),
+            ("limit-holding", held, .notCharging, 80, nil),
+            ("optimized-holding", held, .notCharging, 95, 80),
+        ]
+        for state in limitStates {
+            write(PanelContent(snapshot: state.battery, estimate: state.estimate, isLowPowerMode: false, sessionWatts: 6.4,
+                               typicalWatts: 7.9, history: history, chargeLimit: state.limit, optimizedHold: state.optimizedHold,
+                               preferences: preferences, lowPowerMode: lowPowerMode,
                                actions: PanelActions(openSettings: {}, openBatterySettings: {}, quit: {})),
-                  scheme: .dark, to: folder.appending(path: "\(name)-dark.png"))
+                  scheme: .dark, to: folder.appending(path: "\(state.name)-dark.png"))
         }
         preferences.showDetails = savedShowDetails
+
+        // The health section: this Mac's own forecast, then made-up batteries partway through and past their life.
+        preferences.showHealth = true
+        let healthStates: [(name: String, battery: BatterySnapshot, records: [HealthRecord])] = [
+            ("health", live, HistoryStore().healthLog),
+            ("health-worn", wornBattery, sampleHealthRecords(for: wornBattery, days: 420, nearFull: 0.75)),
+            ("health-old", oldBattery, sampleHealthRecords(for: oldBattery, days: 200, nearFull: 0.2)),
+        ]
+        for state in healthStates {
+            guard let forecast = HealthForecast.make(records: state.records, snapshot: state.battery, minutesPerMAh: 0.095,
+                                                     chargeLimit: 100) else { continue }
+            for scheme in [ColorScheme.dark, .light] {
+                write(PanelContent(snapshot: state.battery, estimate: .untilEmpty(minutes: 412), isLowPowerMode: false, sessionWatts: 6.4,
+                                   typicalWatts: 7.9, history: history, healthForecast: forecast,
+                                   preferences: preferences, lowPowerMode: lowPowerMode,
+                                   actions: PanelActions(openSettings: {}, openBatterySettings: {}, quit: {})),
+                      scheme: scheme, to: folder.appending(path: "\(state.name)-\(scheme == .dark ? "dark" : "light").png"))
+            }
+            print("\(state.name): \(HealthSection.summary(for: forecast))")
+        }
+        preferences.showHealth = savedShowHealth
 
         // The notes at the top of the panel (a new version, and Apple's battery icon still in the menu bar), and the welcome guide.
         write(PanelContent(snapshot: live, estimate: .untilEmpty(minutes: 648), isLowPowerMode: false, sessionWatts: 6.4,
@@ -189,6 +217,45 @@ enum SnapshotRenderer {
         guard let image = renderer.nsImage, let tiff = image.tiffRepresentation,
               let png = NSBitmapImageRep(data: tiff)?.representation(using: .png, properties: [:]) else { return }
         try? png.write(to: url)
+    }
+
+    /// Made-up batteries for the health section: partway through their life, and past it.
+    static var wornBattery: BatterySnapshot { sampleBattery(health: 88, cycles: 410, years: 3.2) }
+    static var oldBattery: BatterySnapshot { sampleBattery(health: 77, cycles: 870, years: 5.8) }
+
+    static func sampleBattery(health: Int, cycles: Int, years: Double) -> BatterySnapshot {
+        var battery = BatteryReader.read(includeTemperature: false)!
+        battery.temperature = 31
+        battery.cycleCount = cycles
+        battery.manufactureDate = Date.now.addingTimeInterval(-years * 365.25 * 24 * 3600)
+        battery.nominalChargeCapacity = battery.designCapacity * health / 100
+        battery.maximumCapacityPercent = health
+        battery.fullChargeCapacity = battery.designCapacity * (health - 2) / 100
+        battery.remainingCapacity = battery.fullChargeCapacity * 4 / 5
+        return battery
+    }
+
+    /// Daily health records leading up to `battery`'s current health: a gentle curve with gauge noise, cycles at a
+    /// steady pace, and days spent near full for `nearFull` of the time.
+    static func sampleHealthRecords(for battery: BatterySnapshot, days: Int, nearFull: Double, celsius: Double = 31) -> [HealthRecord] {
+        guard let built = battery.manufactureDate else { return [] }
+        let age = Date.now.timeIntervalSince(built)
+        let start = 1.015, end = Double(battery.nominalChargeCapacity) / Double(battery.designCapacity)
+        var usage = DailyUsage()
+        usage.add(hours: 9 * (1 - nearFull), percent: 60, celsius: celsius, isMeasured: true)
+        usage.add(hours: 9 * nearFull, percent: 100, celsius: celsius, isMeasured: true)
+        usage.add(hours: 15 * nearFull, percent: 100, celsius: 25, isMeasured: false)
+        usage.add(hours: 15 * (1 - nearFull), percent: 55, celsius: 25, isMeasured: false)
+        return (1...days).reversed().map { daysAgo in
+            let day = Calendar.current.startOfDay(for: Date.now.addingTimeInterval(-Double(daysAgo) * 86400))
+            let progress = max(0, day.timeIntervalSince(built)) / age
+            // Half the wear grows with the square root of age and half with use, plus a little gauge noise.
+            let health = start - (start - end) * (0.5 * progress.squareRoot() + 0.5 * progress) + 0.004 * sin(Double(daysAgo) * 1.7)
+            return HealthRecord(day: day, fullChargeCapacity: Int(health * 0.975 * Double(battery.designCapacity)),
+                                designCapacity: battery.designCapacity, maximumCapacityPercent: 100,
+                                cycleCount: Int(Double(battery.cycleCount) * progress),
+                                nominalChargeCapacity: Int(health * Double(battery.designCapacity)), usage: usage)
+        }
     }
 
     /// A plausible day: two charges, a long unplugged stretch and a pause held at 80%.

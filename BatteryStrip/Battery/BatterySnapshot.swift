@@ -13,9 +13,12 @@ nonisolated struct BatterySnapshot: Equatable {
     var remainingCapacity: Int
     /// What the battery holds when full today, in mAh.
     var fullChargeCapacity: Int
+    /// What the battery can hold when full, before the gauge's adjustments for temperature and load, in mAh.
+    var nominalChargeCapacity: Int
     /// What the battery held when new, in mAh.
     var designCapacity: Int
-    /// Apple's "Maximum Capacity", the health figure System Settings shows.
+    /// Health: the nominal capacity against the design capacity, capped at 100%. It's the closest public
+    /// figure to System Settings' Maximum Capacity, which can differ by a percent or two.
     var maximumCapacityPercent: Int
     var cycleCount: Int
     var designCycleCount: Int?
@@ -31,7 +34,7 @@ nonisolated struct BatterySnapshot: Equatable {
     var systemTimeToEmpty: Int?
     var systemTimeToFull: Int?
     var adapter: PowerAdapter?
-    /// °C. Only read while the panel is open.
+    /// °C. Read with every reading while the panel is open, otherwise every ten minutes or so.
     var temperature: Double?
     var serialNumber: String?
     var gaugeName: String?

@@ -97,8 +97,17 @@ final class StatusItemController: NSObject {
             description += ", fully charged"
         case .notCharging:
             let atLimit = monitor.activeChargeLimit.map { snapshot.percent >= $0 - 1 } ?? false
-            description += atLimit ? ", holding at the charge limit" : ", not charging"
-            tooltip += atLimit ? " · holding at charge limit" : " · not charging"
+            let optimizedHolding = monitor.optimizedChargingHold.map { snapshot.percent >= $0 - 1 } ?? false
+            if atLimit {
+                description += ", holding at the charge limit"
+                tooltip += " · holding at charge limit"
+            } else if optimizedHolding {
+                description += ", held by Optimized Battery Charging"
+                tooltip += " · Optimized Battery Charging"
+            } else {
+                description += ", not charging"
+                tooltip += " · not charging"
+            }
         case .calculating:
             break
         }

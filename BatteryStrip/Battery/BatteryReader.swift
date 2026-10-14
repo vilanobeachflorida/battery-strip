@@ -20,6 +20,9 @@ nonisolated enum BatteryReader {
         let isPluggedIn = bool(battery["ExternalConnected"])
         let systemLoad = int(telemetry["SystemLoad"]).map { Double($0) / 1000 }
         let powerIn = int(telemetry["SystemPowerIn"]).map { Double($0) / 1000 }
+        let fullCharge = int(data["FullChargeCapacity"]) ?? int(battery["AppleRawMaxCapacity"]) ?? 0
+        let nominal = int(data["NominalChargeCapacity"]) ?? int(battery["NominalChargeCapacity"]) ?? fullCharge
+        let design = int(data["DesignCapacity"]) ?? int(battery["DesignCapacity"]) ?? 0
 
         return BatterySnapshot(
             date: int(battery["UpdateTime"]).map { Date(timeIntervalSince1970: TimeInterval($0)) } ?? .now,
@@ -28,9 +31,12 @@ nonisolated enum BatteryReader {
             isCharging: bool(battery["IsCharging"]),
             isFullyCharged: bool(battery["FullyCharged"]),
             remainingCapacity: int(data["RemainingCapacity"]) ?? int(battery["AppleRawCurrentCapacity"]) ?? 0,
-            fullChargeCapacity: int(data["FullChargeCapacity"]) ?? int(battery["AppleRawMaxCapacity"]) ?? 0,
-            designCapacity: int(data["DesignCapacity"]) ?? int(battery["DesignCapacity"]) ?? 0,
-            maximumCapacityPercent: int(battery["MaxCapacity"]) ?? 100,
+            fullChargeCapacity: fullCharge,
+            nominalChargeCapacity: nominal,
+            designCapacity: design,
+            // Not the registry's "MaxCapacity": on Apple silicon that's the top of the 0–100 percentage scale,
+            // so it always reads 100 however worn the battery is.
+            maximumCapacityPercent: healthPercent(nominal: nominal, design: design) ?? 100,
             cycleCount: int(battery["CycleCount"]) ?? 0,
             designCycleCount: int(battery["DesignCycleCount9C"]),
             voltage: Double(int(battery["Voltage"]) ?? 0) / 1000,
@@ -69,6 +75,13 @@ nonisolated enum BatteryReader {
               date <= .now, date > Date.now.addingTimeInterval(-20 * 365 * 24 * 3600)
         else { return nil }
         return date
+    }
+
+    /// The nominal full charge against the design capacity, rounded and capped at 100%. A new battery often
+    /// holds a little more than its design capacity.
+    static func healthPercent(nominal: Int, design: Int) -> Int? {
+        guard nominal > 0, design > 0 else { return nil }
+        return min(100, Int((Double(nominal) / Double(design) * 100).rounded()))
     }
 
     private static func readAdapter() -> PowerAdapter? {

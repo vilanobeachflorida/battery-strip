@@ -9,6 +9,8 @@ struct HeroSection: View {
     let typicalWatts: Double?
     /// macOS's Charge Limit, when it's below 100%.
     var chargeLimit: Int?
+    /// Where Optimized Battery Charging is holding the battery for now, when it is.
+    var optimizedHold: Int?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -69,6 +71,9 @@ struct HeroSection: View {
             return "Fully charged and running on power."
         case .notCharging:
             if let chargeLimit, limitReached { return "Plugged in and holding at your \(chargeLimit)% charge limit." }
+            if let optimizedHold, snapshot.percent >= optimizedHold - 1 {
+                return "Holding at \(optimizedHold)% for now. Optimized Battery Charging finishes charging before you usually unplug."
+            }
             return "Plugged in and holding here. Optimized Battery Charging or a charge limit is protecting the battery."
         case .calculating:
             return snapshot.isPluggedIn ? "Working out how long charging will take." : "Working out how long you have left."

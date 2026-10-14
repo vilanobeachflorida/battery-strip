@@ -40,6 +40,9 @@ struct PanelView: View {
             suggestion: preferences.showSuggestions ? suggestions.suggestion : nil,
             showsAppleIconReminder: setup.isAppleBatteryIconShown == true && !preferences.dismissedAppleIconReminder,
             chargeLimit: monitor.activeChargeLimit,
+            optimizedHold: monitor.optimizedChargingHold,
+            // Only worked out while the health section is open.
+            healthForecast: preferences.showHealth ? monitor.healthForecast() : nil,
             update: updates.notice,
             dismissUpdate: updates.dismiss,
             preferences: preferences,
@@ -63,6 +66,10 @@ struct PanelContent: View {
     var showsAppleIconReminder = false
     /// macOS's Charge Limit, when it's below 100%.
     var chargeLimit: Int?
+    /// Where Optimized Battery Charging is holding the battery for now, when it is.
+    var optimizedHold: Int?
+    /// While the health section is open.
+    var healthForecast: HealthForecast?
     var update: UpdateChecker.Update?
     var dismissUpdate: () -> Void = {}
     @Bindable var preferences: Preferences
@@ -89,13 +96,21 @@ struct PanelContent: View {
                     isLowPowerMode: isLowPowerMode,
                     sessionWatts: sessionWatts,
                     typicalWatts: typicalWatts,
-                    chargeLimit: chargeLimit
+                    chargeLimit: chargeLimit,
+                    optimizedHold: optimizedHold
                 )
                 if let suggestion {
                     SuggestionCard(suggestion: suggestion)
                         .transition(.opacity)
                 }
-                StatTiles(snapshot: snapshot, temperatureUnit: preferences.temperatureUnit)
+                VStack(spacing: 8) {
+                    StatTiles(snapshot: snapshot, temperatureUnit: preferences.temperatureUnit,
+                              isHealthExpanded: snapshot.designCapacity > 0 && snapshot.nominalChargeCapacity > 0 ? $preferences.showHealth : nil)
+                    if preferences.showHealth, let healthForecast {
+                        HealthSection(forecast: healthForecast)
+                            .transition(.opacity.combined(with: .scale(scale: 0.96, anchor: .top)))
+                    }
+                }
                 EnergySection(apps: apps, icon: appIcon)
                 HistoryChart(points: history)
                 DetailsSection(snapshot: snapshot, chargeLimit: chargeLimit, isExpanded: $preferences.showDetails)

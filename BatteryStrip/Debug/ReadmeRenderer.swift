@@ -28,6 +28,7 @@ enum ReadmeRenderer {
         snapshot.amperage = -0.62
         snapshot.temperature = 31
         snapshot.maximumCapacityPercent = 98
+        snapshot.nominalChargeCapacity = snapshot.designCapacity * 98 / 100
         snapshot.cycleCount = 124
         snapshot.designCycleCount = 1000
 
@@ -48,6 +49,16 @@ enum ReadmeRenderer {
             let hero = Hero(scheme: scheme, snapshot: snapshot, history: history, apps: apps, icons: icons, suggestion: suggestion)
                 .environment(\.colorScheme, scheme)
             write(hero, to: folder.appending(path: "panel-\(scheme == .dark ? "dark" : "light").jpg"))
+        }
+        // The health section, opened from the Health tile, for a battery a couple of years in that mostly sits at full charge.
+        let aged = SnapshotRenderer.sampleBattery(health: 92, cycles: 160, years: 2.6)
+        if let forecast = HealthForecast.make(records: SnapshotRenderer.sampleHealthRecords(for: aged, days: 540, nearFull: 0.9),
+                                              snapshot: aged, minutesPerMAh: 0.1, chargeLimit: 100) {
+            print("Health: \(HealthSection.summary(for: forecast))")
+            for scheme in [ColorScheme.dark, .light] {
+                write(HealthCard(scheme: scheme, snapshot: aged, forecast: forecast).environment(\.colorScheme, scheme),
+                      to: folder.appending(path: "health-\(scheme == .dark ? "dark" : "light").jpg"))
+            }
         }
         SnapshotRenderer.renderMenuBarIcons(to: folder, prefix: "menu-bar-states")
         print("Rendered README images to \(folder.path)")
@@ -110,6 +121,33 @@ enum ReadmeRenderer {
         }
     }
 
+    /// The stat tiles with the health section open below them, on a slice of glass.
+    private struct HealthCard: View {
+        let scheme: ColorScheme
+        let snapshot: BatterySnapshot
+        let forecast: HealthForecast
+
+        var body: some View {
+            VStack(spacing: 8) {
+                StatTiles(snapshot: snapshot, temperatureUnit: Preferences.shared.temperatureUnit, isHealthExpanded: .constant(true))
+                HealthSection(forecast: forecast)
+            }
+            .padding(18)
+            .frame(width: PanelController.width)
+            .background {
+                Wallpaper(scheme: scheme)
+                    .blur(radius: 40)
+                    .overlay(scheme == .dark ? Color.black.opacity(0.34) : Color.white.opacity(0.52))
+            }
+            .clipShape(.rect(cornerRadius: 24))
+            .overlay(RoundedRectangle(cornerRadius: 24).strokeBorder(Color.white.opacity(scheme == .dark ? 0.14 : 0.7), lineWidth: 1))
+            .shadow(color: .black.opacity(0.3), radius: 28, y: 14)
+            .padding(.vertical, 50)
+            .frame(width: 560)
+            .background(Wallpaper(scheme: scheme))
+        }
+    }
+
     private struct MenuBar: View {
         let scheme: ColorScheme
         let level: Double
@@ -147,7 +185,7 @@ enum ReadmeRenderer {
             VStack(alignment: .leading, spacing: 16) {
                 HeroSection(snapshot: snapshot, estimate: .untilEmpty(minutes: 412), isLowPowerMode: false, sessionWatts: 7.4, typicalWatts: 5.1)
                 SuggestionCard(suggestion: suggestion)
-                StatTiles(snapshot: snapshot, temperatureUnit: Preferences.shared.temperatureUnit)
+                StatTiles(snapshot: snapshot, temperatureUnit: Preferences.shared.temperatureUnit, isHealthExpanded: .constant(false))
                 EnergySection(apps: apps, icon: { icons[$0] })
                 HistoryChart(points: history)
                 DetailsSection(snapshot: snapshot, isExpanded: .constant(false))

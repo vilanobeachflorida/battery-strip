@@ -55,8 +55,8 @@ struct DetailsSection: View {
             Row(label: "Charge", value: "\(snapshot.remainingCapacity.formatted()) of \(Format.milliampHours(snapshot.fullChargeCapacity))"),
         ]
         if snapshot.designCapacity > 0 {
-            let ratio = Double(snapshot.fullChargeCapacity) / Double(snapshot.designCapacity)
-            rows.append(Row(label: "Full charge", value: "\(Format.milliampHours(snapshot.fullChargeCapacity)) (\(ratio.formatted(.percent.precision(.fractionLength(0)))) of new)"))
+            // The figure the Health tile comes from.
+            rows.append(Row(label: "Maximum capacity", value: "\(Format.milliampHours(snapshot.nominalChargeCapacity)) (\(snapshot.maximumCapacityPercent)%)"))
             rows.append(Row(label: "When new", value: Format.milliampHours(snapshot.designCapacity)))
         }
         if let rated = snapshot.designCycleCount {

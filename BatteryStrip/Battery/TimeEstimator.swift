@@ -84,6 +84,13 @@ final class TimeEstimator {
     /// What this Mac usually draws on battery, once there's enough history to say.
     var typicalDrawMA: Double? { learned.batteryHours >= 3 ? learned.typicalDrawMA : nil }
 
+    /// Minutes each mAh of a full charge lasts at the typical draw, down to macOS's 0%, which keeps a little in reserve.
+    var fullChargeMinutesPerMAh: Double? {
+        guard let draw = typicalDrawMA, draw > 10 else { return nil }
+        let reserve = learned.percentFit.line.map { min(0.15, max(0, -$0.intercept / $0.slope)) } ?? 0
+        return (1 - reserve) * 60 / draw
+    }
+
     private var learned: LearnedBehavior
     private var session = Session()
     private var shown: Shown?
